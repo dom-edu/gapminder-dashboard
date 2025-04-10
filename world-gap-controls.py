@@ -9,7 +9,6 @@ import plotly.express as px
 # DEBUG TOGGLE 
 DEBUG = True
 
-
 # load data into dataframe 
 gapminder_df = px.data.gapminder() 
 
@@ -24,7 +23,6 @@ scatter_ = px.scatter(gapminder_df.query("year==2007"), x="gdpPercap", y="lifeEx
 	         size="pop", color="continent",
                  hover_name="country", log_x=True, size_max=60)
 
-
 # Controls 
 cl_ops = gapminder_df['continent'].unique() # get unique continents as options 
 cl_ops_sel = cl_ops[:2] # select the first two 
@@ -32,8 +30,6 @@ cl1_style = {
   'margin-top': '4%',
   'margin-left': '6%'
 }
-
-
 
 # checklist 
 checklist1 = dcc.Checklist(cl_ops, cl_ops_sel, inline=True, style=cl1_style, id="checklist") 
@@ -56,7 +52,6 @@ if DEBUG:
     print(min_year_)
     print(max_year_)
     print(step_)
-
 
 rs1 = dcc.RangeSlider(
     min_year_,
@@ -96,8 +91,6 @@ def update_header(years_):
     complete_title = f"Life Expectancy for the year(s):{years_str}"
     return complete_title
 
-
-
 # scatter plot callback 
 @callback(
     Output('scatter-gap', 'figure'),
@@ -120,7 +113,6 @@ def update_scatter(cl_sel, dd_sel, rs_sel):
     # show only select continents 
     filter2_ = gapminder_df['continent'].isin(cl_sel)
 
-
     g_mind_filtered = gapminder_df[filter1_ & filter2_]
 
     ## scatterplot 
@@ -135,9 +127,6 @@ def update_scatter(cl_sel, dd_sel, rs_sel):
                         size_max=60)
     
     return scatter_
-
-
-
 
 if __name__ == '__main__':
     app.run(port=5006, debug = True) 
