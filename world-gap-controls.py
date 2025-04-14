@@ -23,6 +23,12 @@ scatter_ = px.scatter(gapminder_df.query("year==2007"), x="gdpPercap", y="lifeEx
 	         size="pop", color="continent",
                  hover_name="country", log_x=True, size_max=60)
 
+
+# bubble map 
+bubble_map_ = px.scatter_geo(gapminder_df.query("year==2007"), locations="iso_alpha", color="continent",
+                     hover_name="country", size="pop",
+                     animation_frame="year",
+                     projection="natural earth")
 # Controls 
 cl_ops = gapminder_df['continent'].unique() # get unique continents as options 
 cl_ops_sel = cl_ops[:2] # select the first two 
@@ -69,7 +75,8 @@ app.layout = [
     checklist1, 
     dd1,
     html.H3("Life Expectancy for the year(s):", style={'textAlign':'center'}, id="life-exp-header"),
-    dcc.Graph(figure =scatter_ ,id="scatter-gap"),
+    dcc.Graph(figure = scatter_ ,id="scatter-gap"),
+    dcc.Graph(figure = bubble_map_, id ="bubble-map" ),
     rs1
 
 ]
