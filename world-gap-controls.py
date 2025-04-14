@@ -25,10 +25,12 @@ scatter_ = px.scatter(gapminder_df.query("year==2007"), x="gdpPercap", y="lifeEx
 
 
 # bubble map 
-bubble_map_ = px.scatter_geo(gapminder_df.query("year==2007"), locations="iso_alpha", color="continent",
-                     hover_name="country", size="pop",
-                     animation_frame="year",
-                     projection="natural earth")
+bubble_map_ = px.scatter_geo(
+    gapminder_df.query("year==2007"), locations="iso_alpha", color="continent",
+    hover_name="country", 
+    size="pop",
+    animation_frame="year",
+    projection="natural earth")
 # Controls 
 cl_ops = gapminder_df['continent'].unique() # get unique continents as options 
 cl_ops_sel = cl_ops[:2] # select the first two 
@@ -134,6 +136,41 @@ def update_scatter(cl_sel, dd_sel, rs_sel):
                         size_max=60)
     
     return scatter_
+
+@callback(
+    Output('bubble-map', 'figure'),
+    Input('checklist','value'),
+    Input('dd1','value'),
+    Input('range-slider-1', 'value')
+)
+def update_bubble_map(cl_sel, dd_sel, rs_sel):
+
+    # DEBUG
+    if DEBUG:
+        print("checklist selected:",cl_sel, type(cl_sel)) # value is a list in this case 
+        print("dropdown selected",dd_sel, type(dd_sel))
+        print("range slider selected: ",rs_sel, type(rs_sel))
+    
+    # filter by selected years from dropdown and from rangeslider 
+    filter1_ = gapminder_df['year'].isin(dd_sel) | gapminder_df['year'].isin(rs_sel)
+
+    # show only select continents from checklist
+    filter2_ = gapminder_df['continent'].isin(cl_sel)
+
+    # filter the pandas dataframe with our filters 
+    g_mind_filtered = gapminder_df[filter1_ & filter2_]
+
+    # rerender the bubble_map 
+    bubble_map_ = px.scatter_geo(
+        g_mind_filtered, 
+        locations="iso_alpha", 
+        color="continent",
+        hover_name="country", 
+        size="pop",
+        animation_frame="year",
+        projection="natural earth")
+    
+    return bubble_map_
 
 if __name__ == '__main__':
     app.run(port=5006, debug = True) 
