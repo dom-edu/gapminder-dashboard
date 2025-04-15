@@ -18,19 +18,40 @@ app = Dash(__name__)
 # figures 
 
 ## scatterplot 
+def create_scatter_plot(df):
 
-scatter_ = px.scatter(gapminder_df.query("year==2007"), x="gdpPercap", y="lifeExp",
-	         size="pop", color="continent",
-                 hover_name="country", log_x=True, size_max=60)
+    """ 
+    Create Scatter Plot figure 
+    """
 
-
+    scatter_ = px.scatter(df, x="gdpPercap", y="lifeExp",
+                size="pop", color="continent",
+                    hover_name="country", log_x=True, size_max=60)
+    return scatter_
 # bubble map 
-bubble_map_ = px.scatter_geo(
-    gapminder_df.query("year==2007"), locations="iso_alpha", color="continent",
-    hover_name="country", 
-    size="pop",
-    animation_frame="year",
-    projection="natural earth")
+def create_bubble_map(df):
+
+    """ 
+    Create Bubble Map figure 
+    """
+
+    return px.scatter_geo(
+        df,
+        locations="iso_alpha",
+        color="continent",
+        hover_name="country",
+        size="pop",
+        animation_frame="year",
+        projection="natural earth")
+
+# instantiate bubble map
+bubble_map_ = create_bubble_map(gapminder_df.query("year==2007"))
+
+# instantiate scatter plot 
+scatter_plot_ = create_scatter_plot(gapminder_df.query("year==2007"))
+
+
+
 # Controls 
 cl_ops = gapminder_df['continent'].unique() # get unique continents as options 
 cl_ops_sel = cl_ops[:2] # select the first two 
@@ -77,7 +98,7 @@ app.layout = [
     checklist1, 
     dd1,
     html.H3("Life Expectancy for the year(s):", style={'textAlign':'center'}, id="life-exp-header"),
-    dcc.Graph(figure = scatter_ ,id="scatter-gap"),
+    dcc.Graph(figure = scatter_plot_ ,id="scatter-gap"),
     dcc.Graph(figure = bubble_map_, id ="bubble-map" ),
     rs1
 
@@ -122,19 +143,10 @@ def update_scatter(cl_sel, dd_sel, rs_sel):
     # show only select continents 
     filter2_ = gapminder_df['continent'].isin(cl_sel)
 
-    g_mind_filtered = gapminder_df[filter1_ & filter2_]
+    g_mind_filtered_df = gapminder_df[filter1_ & filter2_]
 
     ## scatterplot 
-    scatter_ = px.scatter(g_mind_filtered , 
-                        x="gdpPercap", 
-                        y="lifeExp",
-                        size="pop", 
-                        color="continent",
-                        hover_name="country", 
-                        hover_data = ["year","pop", "lifeExp"],
-                        log_x=True, 
-                        size_max=60)
-    
+    scatter_ = create_scatter_plot(g_mind_filtered_df)
     return scatter_
 
 @callback(
@@ -158,17 +170,10 @@ def update_bubble_map(cl_sel, dd_sel, rs_sel):
     filter2_ = gapminder_df['continent'].isin(cl_sel)
 
     # filter the pandas dataframe with our filters 
-    g_mind_filtered = gapminder_df[filter1_ & filter2_]
+    g_mind_filtered_df = gapminder_df[filter1_ & filter2_]
 
     # rerender the bubble_map 
-    bubble_map_ = px.scatter_geo(
-        g_mind_filtered, 
-        locations="iso_alpha", 
-        color="continent",
-        hover_name="country", 
-        size="pop",
-        animation_frame="year",
-        projection="natural earth")
+    bubble_map_ = create_bubble_map(g_mind_filtered_df)
     
     return bubble_map_
 
