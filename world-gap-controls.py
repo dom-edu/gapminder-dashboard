@@ -18,10 +18,39 @@ app = Dash(__name__)
 # figures 
 
 ## scatterplot 
+def create_scatter_plot(df):
 
-scatter_ = px.scatter(gapminder_df.query("year==2007"), x="gdpPercap", y="lifeExp",
-	         size="pop", color="continent",
-                 hover_name="country", log_x=True, size_max=60)
+    """ 
+    Create Scatter Plot figure 
+    """
+
+    scatter_ = px.scatter(df, x="gdpPercap", y="lifeExp",
+                size="pop", color="continent",
+                    hover_name="country", log_x=True, size_max=60)
+    return scatter_
+# bubble map 
+def create_bubble_map(df):
+
+    """ 
+    Create Bubble Map figure 
+    """
+
+    return px.scatter_geo(
+        df,
+        locations="iso_alpha",
+        color="continent",
+        hover_name="country",
+        size="pop",
+        animation_frame="year",
+        projection="natural earth")
+
+# instantiate bubble map
+bubble_map_ = create_bubble_map(gapminder_df.query("year==2007"))
+
+# instantiate scatter plot 
+scatter_plot_ = create_scatter_plot(gapminder_df.query("year==2007"))
+
+
 
 # Controls 
 cl_ops = gapminder_df['continent'].unique() # get unique continents as options 
@@ -69,10 +98,25 @@ app.layout = [
     checklist1, 
     dd1,
     html.H3("Life Expectancy for the year(s):", style={'textAlign':'center'}, id="life-exp-header"),
-    dcc.Graph(figure =scatter_ ,id="scatter-gap"),
+    dcc.Graph(figure = scatter_plot_ ,id="scatter-gap"),
+    dcc.Graph(figure = bubble_map_, id ="bubble-map" ),
     rs1
 
 ]
+
+# filter helper function 
+def filter_gp_data(cl_sel, dd_sel, rs_sel):
+    """
+    filters Gapminder data by year and continent 
+    """
+    # | -> or gives us the intersection of the multi dropdown and rangeslider
+    filter1_ = gapminder_df['year'].isin(dd_sel) | gapminder_df['year'].isin(rs_sel)
+
+    # show only select continents 
+    filter2_ = gapminder_df['continent'].isin(cl_sel)
+
+    return gapminder_df[filter1_ & filter2_]
+
 
 # h3 title callback 
 @callback(
@@ -105,28 +149,32 @@ def update_scatter(cl_sel, dd_sel, rs_sel):
         print("checklist selected:",cl_sel, type(cl_sel)) # value is a list in this case 
         print("dropdown selected",dd_sel, type(dd_sel))
         print("range slider selected: ",rs_sel, type(rs_sel))
-    # filter by select continents value = ['Africa', 'America'...]
-
-    # | -> or gives us the intersection of the multi dropdown and rangeslider
-    filter1_ = gapminder_df['year'].isin(dd_sel) | gapminder_df['year'].isin(rs_sel)
-
-    # show only select continents 
-    filter2_ = gapminder_df['continent'].isin(cl_sel)
-
-    g_mind_filtered = gapminder_df[filter1_ & filter2_]
+    
+    g_mind_filtered_df =  filter_gp_data(cl_sel, dd_sel, rs_sel)
 
     ## scatterplot 
-    scatter_ = px.scatter(g_mind_filtered , 
-                        x="gdpPercap", 
-                        y="lifeExp",
-                        size="pop", 
-                        color="continent",
-                        hover_name="country", 
-                        hover_data = ["year","pop", "lifeExp"],
-                        log_x=True, 
-                        size_max=60)
+    return create_scatter_plot(g_mind_filtered_df)
+
+@callback(
+    Output('bubble-map', 'figure'),
+    Input('checklist','value'),
+    Input('dd1','value'),
+    Input('range-slider-1', 'value')
+)
+def update_bubble_map(cl_sel, dd_sel, rs_sel):
+
+    # DEBUG
+    if DEBUG:
+        print("checklist selected:",cl_sel, type(cl_sel)) # value is a list in this case 
+        print("dropdown selected",dd_sel, type(dd_sel))
+        print("range slider selected: ",rs_sel, type(rs_sel))
     
-    return scatter_
+   g_mind_filtered_df = filter_gp_data(cl_sel, dd_sel, rs_sel)
+
+    # rerender the bubble_map 
+    bubble_map_ = create_bubble_map(g_mind_filtered_df)
+    
+    return bubble_map_
 
 if __name__ == '__main__':
     app.run(port=5006, debug = True) 
