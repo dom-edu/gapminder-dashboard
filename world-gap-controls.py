@@ -104,6 +104,20 @@ app.layout = [
 
 ]
 
+# filter helper function 
+def filter_gp_data(cl_sel, dd_sel, rs_sel):
+    """
+    filters Gapminder data by year and continent 
+    """
+    # | -> or gives us the intersection of the multi dropdown and rangeslider
+    filter1_ = gapminder_df['year'].isin(dd_sel) | gapminder_df['year'].isin(rs_sel)
+
+    # show only select continents 
+    filter2_ = gapminder_df['continent'].isin(cl_sel)
+
+    return gapminder_df[filter1_ & filter2_]
+
+
 # h3 title callback 
 @callback(
     Output('life-exp-header', 'children'),
@@ -135,19 +149,11 @@ def update_scatter(cl_sel, dd_sel, rs_sel):
         print("checklist selected:",cl_sel, type(cl_sel)) # value is a list in this case 
         print("dropdown selected",dd_sel, type(dd_sel))
         print("range slider selected: ",rs_sel, type(rs_sel))
-    # filter by select continents value = ['Africa', 'America'...]
-
-    # | -> or gives us the intersection of the multi dropdown and rangeslider
-    filter1_ = gapminder_df['year'].isin(dd_sel) | gapminder_df['year'].isin(rs_sel)
-
-    # show only select continents 
-    filter2_ = gapminder_df['continent'].isin(cl_sel)
-
-    g_mind_filtered_df = gapminder_df[filter1_ & filter2_]
+    
+    g_mind_filtered_df =  filter_gp_data(cl_sel, dd_sel, rs_sel)
 
     ## scatterplot 
-    scatter_ = create_scatter_plot(g_mind_filtered_df)
-    return scatter_
+    return create_scatter_plot(g_mind_filtered_df)
 
 @callback(
     Output('bubble-map', 'figure'),
@@ -163,14 +169,7 @@ def update_bubble_map(cl_sel, dd_sel, rs_sel):
         print("dropdown selected",dd_sel, type(dd_sel))
         print("range slider selected: ",rs_sel, type(rs_sel))
     
-    # filter by selected years from dropdown and from rangeslider 
-    filter1_ = gapminder_df['year'].isin(dd_sel) | gapminder_df['year'].isin(rs_sel)
-
-    # show only select continents from checklist
-    filter2_ = gapminder_df['continent'].isin(cl_sel)
-
-    # filter the pandas dataframe with our filters 
-    g_mind_filtered_df = gapminder_df[filter1_ & filter2_]
+   g_mind_filtered_df = filter_gp_data(cl_sel, dd_sel, rs_sel)
 
     # rerender the bubble_map 
     bubble_map_ = create_bubble_map(g_mind_filtered_df)
